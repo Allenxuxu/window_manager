@@ -54,6 +54,7 @@ extension NSRect {
 public class WindowManager: NSObject, NSWindowDelegate {
     public var onEvent:((String) -> Void)?
     
+    private var previousActiveApp: NSRunningApplication?
     private var _mainWindow: NSWindow?
     public var mainWindow: NSWindow {
         get {
@@ -115,8 +116,9 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     public func focus() {
+        previousActiveApp = NSWorkspace.shared.frontmostApplication
         NSApp.activate(ignoringOtherApps: false)
-        mainWindow.makeKeyAndOrderFront(nil)
+        mainWindow.makeKeyAndOrderFront(self)
     }
     
     public func blur() {
@@ -128,9 +130,10 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     public func show() {
+        previousActiveApp = NSWorkspace.shared.frontmostApplication
         mainWindow.setIsVisible(true)
         DispatchQueue.main.async {
-            self.mainWindow.makeKeyAndOrderFront(nil)
+            self.mainWindow.makeKeyAndOrderFront(self)
             NSApp.activate(ignoringOtherApps: true)
         }
     }
@@ -138,6 +141,14 @@ public class WindowManager: NSObject, NSWindowDelegate {
     public func hide() {
         DispatchQueue.main.async {
             self.mainWindow.orderOut(nil)
+        }
+
+        activatepPeviousActiveApp()
+    }
+
+    public func activatepPeviousActiveApp() {
+        if let app = previousActiveApp {
+            app.activate()
         }
     }
     
@@ -170,6 +181,7 @@ public class WindowManager: NSObject, NSWindowDelegate {
     }
     
     public func restore() {
+        previousActiveApp = NSWorkspace.shared.frontmostApplication
         mainWindow.deminiaturize(nil)
     }
 
